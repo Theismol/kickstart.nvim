@@ -47,7 +47,14 @@ return {
       vim.api.nvim_create_autocmd({ 'BufEnter', 'BufWritePost', 'InsertLeave' }, {
         group = lint_augroup,
         callback = function()
-          lint.try_lint()
+          if vim.bo.modifiable then
+            lint.try_lint(nil, {
+              filter = function(linter)
+                local cmd = type(linter.cmd) == 'function' and linter.cmd() or linter.cmd
+                return type(cmd) == 'string' and vim.fn.executable(cmd) == 1
+              end,
+            })
+          end
         end,
       })
     end,
